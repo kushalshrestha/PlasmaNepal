@@ -159,8 +159,8 @@ body {
 
 
 .cus-feedback{
-    background-color: var(--clr-secondary);
-    color: var(--clr-white);
+    background-color: var(--clr-light);
+    color: var(--clr-secondary);
     margin-left: 0px;
     margin-right: 0px;
 }
