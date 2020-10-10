@@ -1,0 +1,70 @@
+Create database if not exists plasmanepal
+Character set utf8mb4
+Collate utf8mb4_unicode_ci;
+
+
+
+create table if not exists company_code_value
+(
+id int not null auto_increment,
+code_id int,
+code varchar(50) not null,#code value
+code_description varchar(100),#description for better understanding
+code_type varchar(25) not null,
+primary key (id)
+)engine=InnoDB;
+
+
+
+insert into company_code_value(code_id,code,code_description,code_type)
+values
+(0,'Test Environment','Test Type','env'),
+(1,'Production Environment','Production Type','env'),
+
+(0,'Plasma Donor','Plasma Donor','role'),
+(1,'Plasma Receiver','Plasma  Receiver','role'),
+(2,'Admin','Admin','role'),
+
+(0,'Activated','User, Request, etc','user-status'),
+(1,'Deactivated','User, Request, etc','user-status'),
+(2,'Temporarily Banned','User, Request, etc','user-status'),
+
+(0,'Still On Recovery','Donor is interested but still on recovery','donor-status'),
+(1,'Available','Donor is available','donor-status'),
+(2,'Request Accepted by Donor','Request accepted by donor, now receiver makes a call','donor-status'),
+(3,'Donor Booked','Donor is booked','donor-status'),
+(3,'Already Donated','Donor has donated','donor-status'),
+(4,'Interested for Next Donation','As per health guidelines, a donor can donate after next 3 months.','donor-status'),
+(5,'Not Interested','Not interested and would not entertain to receive notification.','donor-status'),
+
+(0,'Searching for a Donor','Searching but not applied. Apply - 0','receiver-status'),
+(1,'Applying','Apply-1','receiver-status'),
+(2,'Applying','Apply-2, now receiver makes a call','receiver-status'),
+(3,'Applying','Apply-3','receiver-status'),
+(4,'Received Blood from a Donor','Received a donor','receiver-status'),
+(5,'Got Rejected from a Donor','Received blood / Got Rejected are on a same hierarchy','receiver-status'),
+(6,'Future Role: Donor','A receiver, if he is the victim, after recovery + 14 days he can be a donor','receiver-status'),
+(7,'Not Interested','Not interested and would not entertain to receive notification.','receiver-status');
+
+
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `phone_number` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `first_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(254) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_role` int(11) DEFAULT NULL,
+  `user_status` tinyint(4) DEFAULT '0',
+  `env` int(11) DEFAULT NULL,
+  `password_salt` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_hash_algorithm` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `email_confirmation_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_reminder_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_reminder_expire` datetime DEFAULT NULL,
+  `remember_me_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email_confirmation_status` tinyint(4) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1665 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
