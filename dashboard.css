@@ -1,0 +1,15 @@
+.cus-search-main{
+    background-color: var(--clr-light);
+    color: var(--clr-dark);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 10px;
+}
+
+.cus-icon-search{
+    padding: 2px !important;
+    border: 0px;
+    background-color: inherit !important;
+    height: 48px;
+    width: 48px;
+}

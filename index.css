@@ -184,6 +184,20 @@ body {
 
 
 
+
+.modal-body .cus-icon, .cus-icon-search{
+    padding: 2px !important;
+    border: 0px;
+    background-color: var(--clr-light) !important;
+    height: 24px;
+    width: 24px;
+}
+
+.cus-dropdown-toggle{
+    background-color: var(--clr-white) !important;
+}
+
+
 @media screen and (min-width: 992px) {
     .cus-modal-dialog{
       max-width: 800px; /* New width for default modal */
