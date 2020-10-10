@@ -179,3 +179,13 @@ body {
     color: var(--clr-white);
     padding: 20px;
 }
+
+
+
+
+
+@media screen and (min-width: 992px) {
+    .cus-modal-dialog{
+      max-width: 800px; /* New width for default modal */
+    }
+}
