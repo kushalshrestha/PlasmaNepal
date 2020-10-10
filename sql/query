@@ -61,10 +61,26 @@ CREATE TABLE `users` (
   `password_salt` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_hash_algorithm` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `email_confirmation_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_reminder_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_reminder_expire` datetime DEFAULT NULL,
   `remember_me_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email_confirmation_status` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1665 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+
+CREATE TABLE `users_additional_info` (
+  `marker_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `marker_lat` float(10,6) NOT NULL,
+  `marker_lng` float(10,6) NOT NULL,
+  `blood_group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`marker_id`),
+  CONSTRAINT `fk_userAdditionalInfo_userId` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
