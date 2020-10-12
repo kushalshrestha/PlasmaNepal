@@ -164,44 +164,31 @@ values
 
 
 
-
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `phone_number` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `first_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `last_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(254) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `password` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `blood_group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `state` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `district` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `municipality` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ward_no` int(10) DEFAULT NULL,
+  `marker_lat` float(10,6) DEFAULT NULL,
+  `marker_lng` float(10,6) DEFAULT NULL,
   `user_role` int(11) DEFAULT NULL,
   `user_status` tinyint(4) DEFAULT '0',
   `env` int(11) DEFAULT NULL,
-  `password_salt` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `password_hash_algorithm` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `email_confirmation_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_salt` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_hash_algorithm` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phone_confirmation_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_reminder_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_reminder_expire` datetime DEFAULT NULL,
   `remember_me_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `email_confirmation_status` tinyint(4) DEFAULT '0',
+  `phone_confirmation_status` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
-
-
-CREATE TABLE `users_additional_info` (
-  `marker_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `marker_lat` float(10,6) NOT NULL,
-  `marker_lng` float(10,6) NOT NULL,
-  `blood_group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`marker_id`),
-  CONSTRAINT `fk_userAdditionalInfo_userId` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 
 
@@ -209,10 +196,16 @@ CREATE TABLE `receiver_request_log`(
 `id` int(11) NOT NULL AUTO_INCREMENT,
 `receiver_id` int(11) NOT NULL,
 `donor_id` int(11) NOT NULL,
-`requested_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-`updated_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 `request_status` tinyint(4) NOT NULL, #Pending Approval, Accepted, Rejected...
 `requested_blood_group` varchar(50) NOT NULL,
+`requested_state` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+`requested_district` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+`requested_municipality` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+`requested_ward_no` int(10) DEFAULT NULL,
+`requested_marker_lat` float(10,6) DEFAULT NULL,
+`requested_marker_lng` float(10,6) DEFAULT NULL,
+`requested_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`updated_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (`id`),
 CONSTRAINT `fk_receiverRequestLog_receiverId` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`),
 CONSTRAINT `fk_receiverRequestLog_donorId` FOREIGN KEY (`donor_id`) REFERENCES `users` (`id`)
