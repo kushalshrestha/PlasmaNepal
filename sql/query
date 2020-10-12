@@ -16,6 +16,7 @@ primary key (id)
 
 
 
+
 insert into company_code_value(code_id,code,code_description,code_type)
 values
 (0,'Test Environment','Test Type','env'),
@@ -44,7 +45,123 @@ values
 (4,'Received Blood from a Donor','Received a donor','receiver-status'),
 (5,'Got Rejected from a Donor','Received blood / Got Rejected are on a same hierarchy','receiver-status'),
 (6,'Future Role: Donor','A receiver, if he is the victim, after recovery + 14 days he can be a donor','receiver-status'),
-(7,'Not Interested','Not interested and would not entertain to receive notification.','receiver-status');
+(7,'Not Interested','Not interested and would not entertain to receive notification.','receiver-status')
+
+(0,'Pending Approval','Donor had nor accepted/rejected','request-status'),
+(1,'Accepted','Donor had nor accepted/rejected','request-status'),
+(2,'Rejected','Donor had nor accepted/rejected','request-status');
+
+
+
+CREATE TABLE `states` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` int(10) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+insert into states(name, code)
+values ('State 1',1),
+('State 2',2),
+('Bagmati',3),
+('Gandaki',4),
+('State 5',5),
+('Karnali',6),
+('State 7',7);
+
+CREATE TABLE `districts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` int(10) NOT NULL,
+  `state_code` int(10) NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_districts_statecode` FOREIGN KEY (`state_code`) REFERENCES `states` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+insert into districts(name,code,state_code)
+values
+('TAPLEJUNG',101,1),
+('SANKHUWASABHA',102,1),
+('SOLUKHUMBU',103,1),
+('OKHALDHUNGA',104,1),
+('KHOTANG',105,1),
+('BHOJPUR',106,1),
+('DHANKUTA',107,1),
+('TERHATHUM',108,1),
+('PANCHTHAR',109,1),
+('ILAM',110,1),
+('JHAPA',111,1),
+('MORANG',112,1),
+('SUNSARI',113,1),
+('UDAYAPUR',114,1),
+('SAPTARI',201,2),
+('SIRAHA',202,2),
+('DHANUSA',203,2),
+('MAHOTTARI',204,2),
+('SARLAHI',205,2),
+('RAUTAHAT ',206,2),
+('BARA',207,2),
+('PARSA',208,2),
+('DOLAKHA',301,3),
+('SINDHUPALCHOK',302,3),
+('RASUWA',303,3),
+('DHADING',304,3),
+('NUWAKOT',305,3),
+('KATHMANDU',306,3),
+('BHAKTAPUR',307,3),
+('LALITPUR',308,3),
+('KAVREPALANCHOK',309,3),
+('RAMECHHAP',310,3),
+('SINDHULI',311,3),
+('MAKWANPUR',312,3),
+('CHITAWAN',313,3),
+('GORKHA',401,4),
+('MANANG',402,4),
+('MUSTANG',403,4),
+('MYAGDI',404,4),
+('KASKI',405,4),
+('LAMJUNG',406,4),
+('TANAHU',407,4),
+('NAWALPARASI EAST',408,4),
+('SYANGJA',409,4),
+('PARBAT',410,4),
+('BAGLUNG',411,4),
+('RUKUM EAST',501,5),
+('ROLPA',502,5),
+('PYUTHAN',503,5),
+('GULMI',504,5),
+('ARGHAKHANCHI',505,5),
+('PALPA',506,5),
+('NAWALPARASI WEST',507,5),
+('RUPANDEHI',508,5),
+('KAPILBASTU',509,5),
+('DANG',510,5),
+('BANKE',511,5),
+('BARDIYA',512,5),
+('DOLPA',601,6),
+('MUGU',602,6),
+('HUMLA',603,6),
+('JUMLA',604,6),
+('KALIKOT',605,6),
+('DAILEKH',606,6),
+('JAJARKOT',607,6),
+('RUKUM WEST',608,6),
+('SALYAN',609,6),
+('SURKHET',610,6),
+('BAJURA',701,7),
+('BAJHANG',702,7),
+('DARCHULA',703,7),
+('BAITADI',704,7),
+('DADELDHURA',705,7),
+('DOTI',706,7),
+('ACHHAM',707,7),
+('KAILALI',708,7),
+('KANCHANPUR',709,7);
+
+
+
+
 
 
 
@@ -53,8 +170,8 @@ CREATE TABLE `users` (
   `phone_number` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `first_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `last_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(254) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(254) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `password` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_role` int(11) DEFAULT NULL,
   `user_status` tinyint(4) DEFAULT '0',
   `env` int(11) DEFAULT NULL,
@@ -84,3 +201,19 @@ CREATE TABLE `users_additional_info` (
   PRIMARY KEY (`marker_id`),
   CONSTRAINT `fk_userAdditionalInfo_userId` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+
+CREATE TABLE `receiver_request_log`(
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`receiver_id` int(11) NOT NULL,
+`donor_id` int(11) NOT NULL,
+`requested_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`updated_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`request_status` tinyint(4) NOT NULL, #Pending Approval, Accepted, Rejected...
+`requested_blood_group` varchar(50) NOT NULL,
+PRIMARY KEY (`id`),
+CONSTRAINT `fk_receiverRequestLog_receiverId` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`),
+CONSTRAINT `fk_receiverRequestLog_donorId` FOREIGN KEY (`donor_id`) REFERENCES `users` (`id`)
+)ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
