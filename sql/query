@@ -2,7 +2,7 @@ Create database if not exists plasmanepal
 Character set utf8mb4
 Collate utf8mb4_unicode_ci;
 
-
+use plasmanepal;
 
 create table if not exists company_code_value
 (
@@ -45,7 +45,7 @@ values
 (4,'Received Blood from a Donor','Received a donor','receiver-status'),
 (5,'Got Rejected from a Donor','Received blood / Got Rejected are on a same hierarchy','receiver-status'),
 (6,'Future Role: Donor','A receiver, if he is the victim, after recovery + 14 days he can be a donor','receiver-status'),
-(7,'Not Interested','Not interested and would not entertain to receive notification.','receiver-status')
+(7,'Not Interested','Not interested and would not entertain to receive notification.','receiver-status'),
 
 (0,'Pending Approval','Donor had nor accepted/rejected','request-status'),
 (1,'Accepted','Donor had nor accepted/rejected','request-status'),
@@ -187,6 +187,7 @@ CREATE TABLE `users` (
   `password_reminder_expire` datetime DEFAULT NULL,
   `remember_me_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `phone_confirmation_status` tinyint(4) DEFAULT '0',
+  `auth_key` char(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
