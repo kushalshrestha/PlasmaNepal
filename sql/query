@@ -213,7 +213,7 @@ CONSTRAINT `fk_receiverRequestLog_donorId` FOREIGN KEY (`donor_id`) REFERENCES `
 )ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `user_feedbacks`(
-`id` int(11) NOT NULL AUTO_INCREMENT,
+`id` int NOT NULL AUTO_INCREMENT,
 `name` varchar(80) NOT NULL,
 `email` varchar(80) NOT NULL,
 `message` text DEFAULT NULL,
