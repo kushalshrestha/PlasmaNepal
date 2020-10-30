@@ -212,6 +212,15 @@ CONSTRAINT `fk_receiverRequestLog_receiverId` FOREIGN KEY (`receiver_id`) REFERE
 CONSTRAINT `fk_receiverRequestLog_donorId` FOREIGN KEY (`donor_id`) REFERENCES `users` (`id`)
 )ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `user_feedbacks`(
+`id` int NOT NULL AUTO_INCREMENT,
+`name` varchar(80) NOT NULL,
+`email` varchar(80) NOT NULL,
+`message` text DEFAULT NULL,
+`submitted_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (`id`)
+)ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 /* SAMPLE QUERY */
 insert into users(phone_number, password, blood_group, state, district, municipality, ward_no, user_role, user_status, env)
@@ -221,7 +230,6 @@ values
 (9813212345, 'apple','A positive', 'Bagmati','LALITPUR','test municipality',1,1,0,0),
 (9813212987, 'apple','A positive', 'Bagmati','LALITPUR','test municipality',1,1,0,0),
 (9841212345, 'apple','A positive', 'Bagmati','LALITPUR','test municipality',1,0,0,0);
-
 
 insert into receiver_request_log(receiver_id, donor_id, request_status, requested_blood_group, requested_state, requested_district, requested_municipality, requested_ward_no)
 values (1,5,0,'A positive','Bagmati', 'LALITPUR', 'test_municipality', 1),
