@@ -219,6 +219,17 @@ CONSTRAINT `fk_receiverRequestLog_donorId` FOREIGN KEY (`donor_id`) REFERENCES `
 )ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+CREATE TABLE `user_feedbacks`(
+`id` int NOT NULL AUTO_INCREMENT,
+`name` varchar(80) NOT NULL,
+`email` varchar(80) NOT NULL,
+`message` text DEFAULT NULL,
+`submitted_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (`id`)
+)ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
 
 insert into company_code_value(code_id,code,code_description,code_type)
 values (3,'Connected','SMS sent/received','request-status');
