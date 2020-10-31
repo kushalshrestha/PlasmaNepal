@@ -1,0 +1,177 @@
+##DROP PROCEDURE IF EXISTS `sp_setStatus`
+DELIMITER $$                            
+CREATE PROCEDURE `sp_setStatus`(
+p_receiver_id int,
+p_donor_id int,
+p_action varchar(30),
+p_action_by varchar(20),
+p_relationship varchar(20)
+)
+BEGIN
+
+DECLARE v_receiver_status,v_donor_status,v_apply_cnt,v_req_status INT DEFAULT 0; 
+DECLARE t_receiver_status,t_donor_status,t_apply_count, t_request_status int;  
+
+select user_status, apply_count 
+into v_receiver_status, v_apply_cnt 
+from users where id=p_receiver_id;
+
+select user_status into v_donor_status from users where id=p_donor_id;
+select request_status into v_req_status from receiver_request_log where receiver_id=p_receiver_id and donor_id=p_donor_id;
+
+
+if (v_receiver_status=0) then
+	if(v_donor_status=0) then 
+				if(p_action='cancel' and p_action_by='donor')  then 
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status ,t_request_status=2; #donor->searching for a donor, receiver->available
+                    if (v_apply_cnt>0) then
+                    set t_apply_count = v_apply_cnt-1;
+                    end if;
+				elseif(p_action='accept' and p_action_by='donor') then
+					set t_receiver_status=1, t_donor_status=1, t_request_status=1, t_apply_count = v_apply_cnt;	#donor->received sms, receiver->waiting for a call
+				elseif(p_action='apply' and p_action_by='receiver') then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=0, t_apply_count=v_apply_cnt+1;	#donor->searching for a donor, receiver->available
+				elseif(p_action='cancel' and p_action_by='receiver') then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->available
+				end if;
+    elseif(v_donor_status=1) then #donor is in waiting for call only for one request at a time
+				if(p_action='cancel' and p_action_by='donor') then # donor is cancelling another request who is in searching for a donor
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->waiting for a call
+				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then #valid. Until blood confirmed, receiver can apply and cancel. not received wala donor ko case ho yo
+					set	t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
+                    if(p_action='apply') then
+						set t_request_status=0, t_apply_count=v_apply_cnt+1;
+					elseif(p_action='cancel') then
+						set t_request_status=2, t_apply_count=v_apply_cnt-1;
+					end if;
+				end if;
+    elseif(v_donor_status=2) then
+				if(p_action='cancel' and p_action_by='donor') then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+				elseif(p_action='cancel' and p_action_by='receiver') then # receiver who requested cancels. Not 'Received SMS' receiver
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+                end if;
+    #else # 9-not interested(deactivated)
+				
+    end if;
+end if;
+
+if (v_receiver_status=1) then
+	if(v_donor_status=0) then 
+				if(p_action='cancel' and p_action_by='donor') then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
+					if(p_action='apply') then
+						set t_request_status = 0, t_apply_count=v_apply_cnt+1;
+					else
+						set t_request_status=2, t_apply_count=v_apply_cnt-1;
+                    end if;
+                end if;
+    elseif(v_donor_status=1) then
+				if(p_action='cancel' and p_action_by='donor') then
+					if(relationship='same') then
+						set t_receiver_status=0, t_donor_status=0,t_request_status=2,  t_apply_count=v_apply_cnt-1;
+					else	
+						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status,t_request_status=2 , t_apply_count = v_apply_cnt-1;
+					end if;
+				elseif(p_action='accept' and p_action_by='donor') then
+					if(relationship='same') then
+						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count = v_apply_cnt; #CONNECTED case - BLOOD CONFIRMED
+					else
+						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=1, t_apply_count=v_apply_cnt;
+                    end if;
+				elseif(p_action='accept' and p_action_by='receiver') then
+					if(relationship='same') then
+						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count=v_apply_cnt;
+					else
+						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=req_status, t_apply_count=v_apply_cnt; #this case won't come
+                    end if;
+				elseif(p_action='apply' and p_action_by='receiver') then
+					set t_receiver_status = v_receiver_status , t_donor_status=v_donor_status ,t_request_status=0, t_apply_count=v_apply_cnt+1;
+				elseif(p_action='cancel' and p_action_by='receiver') then
+					if(relationship='same') then
+						set t_receiver_status=1, t_donor_status=1, t_request_status=2, t_apply_count = v_apply_cnt-1;
+					else
+						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+					end if;
+				end if;
+	elseif(v_donor_status=2) then
+				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
+					if(relationship='diff') then
+						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+					end if;
+				end if;
+    end if;
+end if;
+
+if (v_receiver_status=2) then
+	if(v_donor_status=0) then 
+				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
+				end if;
+	elseif(v_donor_status=1) then
+				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+				end if;
+	end if;
+end if;
+
+select v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id;
+
+update users
+set user_status=t_receiver_status, apply_count=t_apply_count
+where id=p_receiver_id;
+
+update users
+set user_status=t_donor_status
+where id=p_donor_id;
+
+
+update receiver_request_log as a
+inner join (select id, max(coalesce(request_updated_date,requested_date))
+														from receiver_request_log
+                                                        where receiver_id=p_receiver_id
+                                                        and donor_id=p_donor_id) as b 
+on a.id=b.id
+set a.request_status=t_request_status
+where a.receiver_id=p_receiver_id
+and a.donor_id=p_donor_id;
+commit;
+
+
+
+END $$ / whole procedure ends with the custom delimiter /                           
+                            
+/ Finally, reset the delimiter to the default ; /                           
+DELIMITER ;
+/*
+RECEIVER->1    DONOR->0
+
+
+STATUS	|	RECEIVER				|	DONOR
+----------------------------------------------------------
+0		|	SEARCHING FOR A DONOR	|	AVAILABLE
+1		|	RECEIVED SMS			|	WAITING FOR A CALL
+2		|	BLOOD CONFIRMED			|	BLOOD CONFIRMED
+9		|	NOT INTERESTED			|	NOT INTERESTED		
+
+
+TEST PROCEDURE CALL[sp_setstatus(receiver_id, donor_id, p_action, p_action_by)]
+CALL `plasmanepal`.`sp_setStatus`(1,5,'apply','receiver','same')
+
+#PLASMA REQUEST LOG :
+request status:
+--------------
+0 - Pending Approval
+1 - Accepted
+2 - Rejected
+3 - Connected
+
+applied
+sms sent
+blood confirmed  - blood confirmed
+cancelled
+
+
+*/
