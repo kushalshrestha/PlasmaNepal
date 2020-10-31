@@ -1,0 +1,37 @@
+Donor Dashboard
+------------------
+Applied
+-------
+1. ........... ACCEPT(accept garna paudaina when waiting for a call)->diff|     REJECT->diff 
+2. ........... 
+3. ........... 
+
+Accepted (
+---------(aile waiting for a call)
+4.---------------------- CANCEL->same  | BLOOD CONFIRMED->same
+
+Blood Confirmed
+
+
+
+RECEIVER DASHBOARD
+===================
+APPLIED:(Multiple donor lai apply)
+---------
+1................. CANCEL -> diff
+2.................
+3................. CANCEL -> diff
+
+Accepted (RECEIVED SMS case)
+---------
+4................. CANCEL-> same    | BLOOD CONFIRMED-> same
+5................. CANCEL-> same	| yo donor lai initial state ma faldim
+
+BLOOD CONFIRMED
+---------------
+
+
+
+MINIMIZE:
+1. Donor lai hour interval ma pathaune bulk list
+2. Waiting for a call bhayeko lai nadekhaune search ma

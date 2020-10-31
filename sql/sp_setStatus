@@ -22,7 +22,7 @@ select request_status into v_req_status from receiver_request_log where receiver
 
 if (v_receiver_status=0) then
 	if(v_donor_status=0) then 
-				if(p_action='cancel' and p_action_by='donor')  then 
+				if(p_action='cancel' and p_action_by='donor')  then #(all diff case)
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status ,t_request_status=2; #donor->searching for a donor, receiver->available
                     if (v_apply_cnt>0) then
                     set t_apply_count = v_apply_cnt-1;
@@ -34,7 +34,7 @@ if (v_receiver_status=0) then
 				elseif(p_action='cancel' and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->available
 				end if;
-    elseif(v_donor_status=1) then #donor is in waiting for call only for one request at a time
+    elseif(v_donor_status=1) then #(all diff case) donor is in waiting for call only for one request at a time
 				if(p_action='cancel' and p_action_by='donor') then # donor is cancelling another request who is in searching for a donor
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->waiting for a call
 				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then #valid. Until blood confirmed, receiver can apply and cancel. not received wala donor ko case ho yo
@@ -45,7 +45,7 @@ if (v_receiver_status=0) then
 						set t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
 				end if;
-    elseif(v_donor_status=2) then
+    elseif(v_donor_status=2) then #(all diff case)
 				if(p_action='cancel' and p_action_by='donor') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 				elseif(p_action='cancel' and p_action_by='receiver') then # receiver who requested cancels. Not 'Received SMS' receiver
@@ -58,7 +58,7 @@ end if;
 
 if (v_receiver_status=1) then
 	if(v_donor_status=0) then 
-				if(p_action='cancel' and p_action_by='donor') then
+				if(p_action='cancel' and p_action_by='donor') then # CORRECTION
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
@@ -71,7 +71,7 @@ if (v_receiver_status=1) then
     elseif(v_donor_status=1) then
 				if(p_action='cancel' and p_action_by='donor') then
 					if(relationship='same') then
-						set t_receiver_status=0, t_donor_status=0,t_request_status=2,  t_apply_count=v_apply_cnt-1;
+						set t_receiver_status=0, t_donor_status=0,t_request_status=2,  t_apply_count=v_apply_cnt-1; # CORRECTION: t_receiver_status ma count check garnu paryo b/c multiple donor bata accept bhayeko hunasakcha
 					else	
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status,t_request_status=2 , t_apply_count = v_apply_cnt-1;
 					end if;
