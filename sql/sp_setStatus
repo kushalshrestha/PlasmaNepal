@@ -6,8 +6,6 @@ p_donor_id int,
 p_requested_blood_group varchar(50), 
 p_requested_state varchar(50), 
 p_requested_district varchar(50), 
-p_requested_municipality varchar(100), 
-p_requested_ward_no int(10),
 p_action varchar(30),
 p_action_by varchar(20),
 p_relationship varchar(20)
@@ -16,7 +14,7 @@ BEGIN
 
 DECLARE v_receiver_status,v_donor_status,v_apply_cnt,v_req_status INT DEFAULT 0; 
 DECLARE t_receiver_status,t_donor_status,t_apply_count, t_request_status int;
-DECLARE v_message_donor, v_message_receiver varchar(250);  
+DECLARE t_result varchar(250);  
 
 select user_status, apply_count 
 into v_receiver_status, v_apply_cnt 
@@ -33,9 +31,11 @@ if (v_receiver_status=0) then
                     if (v_apply_cnt>0) then
                     set t_apply_count = v_apply_cnt-1;
                     end if;
+                    
 				elseif(p_action='accept' and p_action_by='donor') then
 					set t_receiver_status=1, t_donor_status=1, t_request_status=1, t_apply_count = v_apply_cnt;	#donor->received sms, receiver->waiting for a call
-				elseif(p_action='apply' and p_action_by='receiver') then
+					
+                elseif(p_action='apply' and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=0, t_apply_count=v_apply_cnt+1;	#donor->searching for a donor, receiver->available
 				elseif(p_action='cancel' and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->available
@@ -135,7 +135,7 @@ where id=p_donor_id;
 
 if(t_request_status=0) then
 	insert into receiver_request_log(receiver_id, donor_id, request_status, requested_blood_group, requested_state, requested_district, requested_municipality, requested_ward_no)
-		values (p_receiver_id,p_donor_id,0,p_requested_blood_group,p_requested_state, p_requested_district, p_requested_municipality, p_requested_ward_no);
+		values (p_receiver_id,p_donor_id,0,p_requested_blood_group,p_requested_state, p_requested_district, null, null);
 else
 	update receiver_request_log as a
 	inner join (select id, max(coalesce(request_updated_date,requested_date))
@@ -168,7 +168,7 @@ STATUS	|	RECEIVER				|	DONOR
 
 
 TEST PROCEDURE CALL[sp_setstatus(receiver_id, donor_id, p_action, p_action_by)]
-CALL `plasmanepal`.`sp_setStatus`(1,5,null, null, null, null, null, 'apply','receiver','same')
+CALL `plasmanepal`.`sp_setStatus`(1,5,'A positive', null, null, 'apply','receiver','same');
 
 #PLASMA REQUEST LOG :
 request status:
