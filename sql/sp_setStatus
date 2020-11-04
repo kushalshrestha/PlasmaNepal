@@ -31,31 +31,37 @@ if (v_receiver_status=0) then
                     if (v_apply_cnt>0) then
                     set t_apply_count = v_apply_cnt-1;
                     end if;
-                    
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				elseif(p_action='accept' and p_action_by='donor') then
 					set t_receiver_status=1, t_donor_status=1, t_request_status=1, t_apply_count = v_apply_cnt;	#donor->received sms, receiver->waiting for a call
-					
+					set t_result=concat("Your ",p_action," request is succeeded.");
                 elseif(p_action='apply' and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=0, t_apply_count=v_apply_cnt+1;	#donor->searching for a donor, receiver->available
-				elseif(p_action='cancel' and p_action_by='receiver') then
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif(p_action='cancel' and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->available
-				end if;
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                end if;
     elseif(v_donor_status=1) then #(all diff case) donor is in waiting for call only for one request at a time
 				if(p_action='cancel' and p_action_by='donor') then # donor is cancelling another request who is in searching for a donor
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->waiting for a call
-				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then #valid. Until blood confirmed, receiver can apply and cancel. not received wala donor ko case ho yo
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then #valid. Until blood confirmed, receiver can apply and cancel. not received wala donor ko case ho yo
 					set	t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
                     if(p_action='apply') then
 						set t_request_status=0, t_apply_count=v_apply_cnt+1;
 					elseif(p_action='cancel') then
 						set t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				end if;
     elseif(v_donor_status=2) then #(all diff case)
 				if(p_action='cancel' and p_action_by='donor') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
-				elseif(p_action='cancel' and p_action_by='receiver') then # receiver who requested cancels. Not 'Received SMS' receiver
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif(p_action='cancel' and p_action_by='receiver') then # receiver who requested cancels. Not 'Received SMS' receiver
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+					set t_result=concat("Your ",p_action," request is succeeded.");
                 end if;
     #else # 9-not interested(deactivated)
 				
@@ -66,47 +72,56 @@ if (v_receiver_status=1) then
 	if(v_donor_status=0) then 
 				if(p_action='cancel' and p_action_by='donor') then # CORRECTION
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
-				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
 					if(p_action='apply') then
 						set t_request_status = 0, t_apply_count=v_apply_cnt+1;
 					else
 						set t_request_status=2, t_apply_count=v_apply_cnt-1;
                     end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
                 end if;
     elseif(v_donor_status=1) then
 				if(p_action='cancel' and p_action_by='donor') then
 					if(relationship='same') then
 						set t_receiver_status=0, t_donor_status=0,t_request_status=2,  t_apply_count=v_apply_cnt-1; # CORRECTION: t_receiver_status ma count check garnu paryo b/c multiple donor bata accept bhayeko hunasakcha
-					else	
+						set t_result=concat("Your ",p_action," request is succeeded.");
+                    else	
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status,t_request_status=2 , t_apply_count = v_apply_cnt-1;
-					end if;
+						set t_result=concat("Your ",p_action," request is succeeded.");
+                    end if;
 				elseif(p_action='accept' and p_action_by='donor') then
 					if(relationship='same') then
 						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count = v_apply_cnt; #CONNECTED case - BLOOD CONFIRMED
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=1, t_apply_count=v_apply_cnt;
                     end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				elseif(p_action='accept' and p_action_by='receiver') then
 					if(relationship='same') then
 						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count=v_apply_cnt;
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=req_status, t_apply_count=v_apply_cnt; #this case won't come
                     end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				elseif(p_action='apply' and p_action_by='receiver') then
 					set t_receiver_status = v_receiver_status , t_donor_status=v_donor_status ,t_request_status=0, t_apply_count=v_apply_cnt+1;
-				elseif(p_action='cancel' and p_action_by='receiver') then
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif(p_action='cancel' and p_action_by='receiver') then
 					if(relationship='same') then
 						set t_receiver_status=1, t_donor_status=1, t_request_status=2, t_apply_count = v_apply_cnt-1;
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				end if;
 	elseif(v_donor_status=2) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					if(relationship='diff') then
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				end if;
     end if;
 end if;
@@ -116,14 +131,16 @@ if (v_receiver_status=2) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
 				end if;
+                set t_result=concat("Your ",p_action," request is succeeded.");
 	elseif(v_donor_status=1) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 				end if;
+                set t_result=concat("Your ",p_action," request is succeeded.");
 	end if;
 end if;
 
-select v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id;
+select v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id,t_result;
 
 update users
 set user_status=t_receiver_status, apply_count=t_apply_count
