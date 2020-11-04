@@ -3,6 +3,11 @@ DELIMITER $$
 CREATE PROCEDURE `sp_setStatus`(
 p_receiver_id int,
 p_donor_id int,
+p_requested_blood_group varchar(50), 
+p_requested_state varchar(50), 
+p_requested_district varchar(50), 
+p_requested_municipality varchar(100), 
+p_requested_ward_no int(10),
 p_action varchar(30),
 p_action_by varchar(20),
 p_relationship varchar(20)
@@ -10,7 +15,8 @@ p_relationship varchar(20)
 BEGIN
 
 DECLARE v_receiver_status,v_donor_status,v_apply_cnt,v_req_status INT DEFAULT 0; 
-DECLARE t_receiver_status,t_donor_status,t_apply_count, t_request_status int;  
+DECLARE t_receiver_status,t_donor_status,t_apply_count, t_request_status int;
+DECLARE v_message_donor, v_message_receiver varchar(250);  
 
 select user_status, apply_count 
 into v_receiver_status, v_apply_cnt 
@@ -127,16 +133,20 @@ update users
 set user_status=t_donor_status
 where id=p_donor_id;
 
-
-update receiver_request_log as a
-inner join (select id, max(coalesce(request_updated_date,requested_date))
-														from receiver_request_log
-                                                        where receiver_id=p_receiver_id
-                                                        and donor_id=p_donor_id) as b 
-on a.id=b.id
-set a.request_status=t_request_status
-where a.receiver_id=p_receiver_id
-and a.donor_id=p_donor_id;
+if(t_request_status=0) then
+	insert into receiver_request_log(receiver_id, donor_id, request_status, requested_blood_group, requested_state, requested_district, requested_municipality, requested_ward_no)
+		values (p_receiver_id,p_donor_id,0,p_requested_blood_group,p_requested_state, p_requested_district, p_requested_municipality, p_requested_ward_no);
+else
+	update receiver_request_log as a
+	inner join (select id, max(coalesce(request_updated_date,requested_date))
+															from receiver_request_log
+															where receiver_id=p_receiver_id
+															and donor_id=p_donor_id) as b 
+	on a.id=b.id
+	set a.request_status=t_request_status, a.request_updated_date=CURRENT_TIMESTAMP
+	where a.receiver_id=p_receiver_id
+	and a.donor_id=p_donor_id;
+end if;
 commit;
 
 
@@ -158,7 +168,7 @@ STATUS	|	RECEIVER				|	DONOR
 
 
 TEST PROCEDURE CALL[sp_setstatus(receiver_id, donor_id, p_action, p_action_by)]
-CALL `plasmanepal`.`sp_setStatus`(1,5,'apply','receiver','same')
+CALL `plasmanepal`.`sp_setStatus`(1,5,null, null, null, null, null, 'apply','receiver','same')
 
 #PLASMA REQUEST LOG :
 request status:
