@@ -70,19 +70,19 @@ if (v_receiver_status=1) then
                 end if;
     elseif(v_donor_status=1) then
 				if(p_action='cancel' and p_action_by='donor') then
-					if(relationship='same') then
+					if(p_relationship='same') then
 						set t_receiver_status=0, t_donor_status=0,t_request_status=2,  t_apply_count=v_apply_cnt-1; # CORRECTION: t_receiver_status ma count check garnu paryo b/c multiple donor bata accept bhayeko hunasakcha
 					else	
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status,t_request_status=2 , t_apply_count = v_apply_cnt-1;
 					end if;
 				elseif(p_action='accept' and p_action_by='donor') then
-					if(relationship='same') then
+					if(p_relationship='same') then
 						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count = v_apply_cnt; #CONNECTED case - BLOOD CONFIRMED
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=1, t_apply_count=v_apply_cnt;
                     end if;
 				elseif(p_action='accept' and p_action_by='receiver') then
-					if(relationship='same') then
+					if(p_relationship='same') then
 						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count=v_apply_cnt;
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=req_status, t_apply_count=v_apply_cnt; #this case won't come
@@ -90,7 +90,7 @@ if (v_receiver_status=1) then
 				elseif(p_action='apply' and p_action_by='receiver') then
 					set t_receiver_status = v_receiver_status , t_donor_status=v_donor_status ,t_request_status=0, t_apply_count=v_apply_cnt+1;
 				elseif(p_action='cancel' and p_action_by='receiver') then
-					if(relationship='same') then
+					if(p_relationship='same') then
 						set t_receiver_status=1, t_donor_status=1, t_request_status=2, t_apply_count = v_apply_cnt-1;
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
@@ -98,7 +98,7 @@ if (v_receiver_status=1) then
 				end if;
 	elseif(v_donor_status=2) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
-					if(relationship='diff') then
+					if(p_relationship='diff') then
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
 				end if;
@@ -132,7 +132,9 @@ update receiver_request_log as a
 inner join (select id, max(coalesce(request_updated_date,requested_date))
 														from receiver_request_log
                                                         where receiver_id=p_receiver_id
-                                                        and donor_id=p_donor_id) as b 
+                                                        and donor_id=p_donor_id
+														group by id
+														) as b 
 on a.id=b.id
 set a.request_status=t_request_status
 where a.receiver_id=p_receiver_id
