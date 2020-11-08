@@ -3,6 +3,9 @@ DELIMITER $$
 CREATE PROCEDURE `sp_setStatus`(
 p_receiver_id int,
 p_donor_id int,
+p_requested_blood_group varchar(50), 
+p_requested_state varchar(50), 
+p_requested_district varchar(50), 
 p_action varchar(30),
 p_action_by varchar(20),
 p_relationship varchar(20)
@@ -10,7 +13,8 @@ p_relationship varchar(20)
 BEGIN
 
 DECLARE v_receiver_status,v_donor_status,v_apply_cnt,v_req_status INT DEFAULT 0; 
-DECLARE t_receiver_status,t_donor_status,t_apply_count, t_request_status int;  
+DECLARE t_receiver_status,t_donor_status,t_apply_count, t_request_status int;
+DECLARE t_result varchar(250);  
 
 select user_status, apply_count 
 into v_receiver_status, v_apply_cnt 
@@ -27,29 +31,37 @@ if (v_receiver_status=0) then
                     if (v_apply_cnt>0) then
                     set t_apply_count = v_apply_cnt-1;
                     end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				elseif(p_action='accept' and p_action_by='donor') then
 					set t_receiver_status=1, t_donor_status=1, t_request_status=1, t_apply_count = v_apply_cnt;	#donor->received sms, receiver->waiting for a call
-				elseif(p_action='apply' and p_action_by='receiver') then
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif(p_action='apply' and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=0, t_apply_count=v_apply_cnt+1;	#donor->searching for a donor, receiver->available
-				elseif(p_action='cancel' and p_action_by='receiver') then
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif(p_action='cancel' and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->available
-				end if;
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                end if;
     elseif(v_donor_status=1) then #(all diff case) donor is in waiting for call only for one request at a time
 				if(p_action='cancel' and p_action_by='donor') then # donor is cancelling another request who is in searching for a donor
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;	#donor->searching for a donor, receiver->waiting for a call
-				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then #valid. Until blood confirmed, receiver can apply and cancel. not received wala donor ko case ho yo
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then #valid. Until blood confirmed, receiver can apply and cancel. not received wala donor ko case ho yo
 					set	t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
                     if(p_action='apply') then
 						set t_request_status=0, t_apply_count=v_apply_cnt+1;
 					elseif(p_action='cancel') then
 						set t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				end if;
     elseif(v_donor_status=2) then #(all diff case)
 				if(p_action='cancel' and p_action_by='donor') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
-				elseif(p_action='cancel' and p_action_by='receiver') then # receiver who requested cancels. Not 'Received SMS' receiver
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif(p_action='cancel' and p_action_by='receiver') then # receiver who requested cancels. Not 'Received SMS' receiver
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
+					set t_result=concat("Your ",p_action," request is succeeded.");
                 end if;
     #else # 9-not interested(deactivated)
 				
@@ -60,47 +72,61 @@ if (v_receiver_status=1) then
 	if(v_donor_status=0) then 
 				if(p_action='cancel' and p_action_by='donor') then # CORRECTION
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
-				elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif((p_action='apply' or p_action='cancel') and p_action_by='receiver') then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
 					if(p_action='apply') then
 						set t_request_status = 0, t_apply_count=v_apply_cnt+1;
 					else
 						set t_request_status=2, t_apply_count=v_apply_cnt-1;
                     end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
                 end if;
     elseif(v_donor_status=1) then
 				if(p_action='cancel' and p_action_by='donor') then
 					if(p_relationship='same') then
 						set t_receiver_status=0, t_donor_status=0,t_request_status=2,  t_apply_count=v_apply_cnt-1; # CORRECTION: t_receiver_status ma count check garnu paryo b/c multiple donor bata accept bhayeko hunasakcha
-					else	
+						set t_result=concat("Your ",p_action," request is succeeded.");
+                    else	
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status,t_request_status=2 , t_apply_count = v_apply_cnt-1;
-					end if;
+						set t_result=concat("Your ",p_action," request is succeeded.");
+                    end if;
 				elseif(p_action='accept' and p_action_by='donor') then
 					if(p_relationship='same') then
 						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count = v_apply_cnt; #CONNECTED case - BLOOD CONFIRMED
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=1, t_apply_count=v_apply_cnt;
                     end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				elseif(p_action='accept' and p_action_by='receiver') then
 					if(p_relationship='same') then
 						set t_receiver_status=2, t_donor_status=2 , t_request_status=3, t_apply_count=v_apply_cnt;
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=req_status, t_apply_count=v_apply_cnt; #this case won't come
                     end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				elseif(p_action='apply' and p_action_by='receiver') then
 					set t_receiver_status = v_receiver_status , t_donor_status=v_donor_status ,t_request_status=0, t_apply_count=v_apply_cnt+1;
+<<<<<<< HEAD
 				elseif(p_action='cancel' and p_action_by='receiver') then
 					if(p_relationship='same') then
+=======
+					set t_result=concat("Your ",p_action," request is succeeded.");
+                elseif(p_action='cancel' and p_action_by='receiver') then
+					if(relationship='same') then
+>>>>>>> main
 						set t_receiver_status=1, t_donor_status=1, t_request_status=2, t_apply_count = v_apply_cnt-1;
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				end if;
 	elseif(v_donor_status=2) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					if(p_relationship='diff') then
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 					end if;
+                    set t_result=concat("Your ",p_action," request is succeeded.");
 				end if;
     end if;
 end if;
@@ -110,14 +136,16 @@ if (v_receiver_status=2) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
 				end if;
+                set t_result=concat("Your ",p_action," request is succeeded.");
 	elseif(v_donor_status=1) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 				end if;
+                set t_result=concat("Your ",p_action," request is succeeded.");
 	end if;
 end if;
 
-select v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id;
+select v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id,t_result;
 
 update users
 set user_status=t_receiver_status, apply_count=t_apply_count
@@ -127,18 +155,22 @@ update users
 set user_status=t_donor_status
 where id=p_donor_id;
 
-
-update receiver_request_log as a
-inner join (select id, max(coalesce(request_updated_date,requested_date))
-														from receiver_request_log
-                                                        where receiver_id=p_receiver_id
-                                                        and donor_id=p_donor_id
-														group by id
-														) as b 
-on a.id=b.id
-set a.request_status=t_request_status
-where a.receiver_id=p_receiver_id
-and a.donor_id=p_donor_id;
+if(t_request_status=0) then
+	insert into receiver_request_log(receiver_id, donor_id, request_status, requested_blood_group, requested_state, requested_district, requested_municipality, requested_ward_no)
+		values (p_receiver_id,p_donor_id,0,p_requested_blood_group,p_requested_state, p_requested_district, null, null);
+else
+	update receiver_request_log as a
+	inner join (select id, max(coalesce(request_updated_date,requested_date))
+															from receiver_request_log
+															where receiver_id=p_receiver_id
+															and donor_id=p_donor_id
+															group by id
+															) as b 
+	on a.id=b.id
+	set a.request_status=t_request_status, a.request_updated_date=CURRENT_TIMESTAMP
+	where a.receiver_id=p_receiver_id
+	and a.donor_id=p_donor_id;
+end if;
 commit;
 
 
@@ -160,7 +192,7 @@ STATUS	|	RECEIVER				|	DONOR
 
 
 TEST PROCEDURE CALL[sp_setstatus(receiver_id, donor_id, p_action, p_action_by)]
-CALL `plasmanepal`.`sp_setStatus`(1,5,'apply','receiver','same')
+CALL `plasmanepal`.`sp_setStatus`(1,5,'A positive', null, null, 'apply','receiver','same');
 
 #PLASMA REQUEST LOG :
 request status:
