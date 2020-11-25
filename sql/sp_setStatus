@@ -15,7 +15,11 @@ BEGIN
 DECLARE v_receiver_status,v_donor_status,v_apply_cnt,v_req_status INT DEFAULT 0; 
 DECLARE t_receiver_status,t_donor_status,t_apply_count, t_request_status int;
 DECLARE t_result varchar(250);  
+DECLARE	rollback_value bool default 0;
 
+
+DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET rollback_value = 1;
+START TRANSACTION;
 select user_status, apply_count 
 into v_receiver_status, v_apply_cnt 
 from users where id=p_receiver_id;
@@ -166,8 +170,15 @@ else
 	where a.receiver_id=p_receiver_id
 	and a.donor_id=p_donor_id;
 end if;
-commit;
-
+IF rollback_value THEN
+        ROLLBACK;
+        # set t_result='Error in procesing request';
+        select rollback_value,v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id,t_result;
+else
+	commit;
+    select rollback_value, v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id,t_result;
+end if;
+select v_receiver_status , t_receiver_status, v_donor_status, t_donor_status, t_request_status, t_apply_count, p_receiver_id,p_donor_id,t_result;
 
 
 END $$ / whole procedure ends with the custom delimiter /                           
