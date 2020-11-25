@@ -109,7 +109,7 @@ if (v_receiver_status=1) then
 					set t_receiver_status = v_receiver_status , t_donor_status=v_donor_status ,t_request_status=0, t_apply_count=v_apply_cnt+1;
 					set t_result=concat("Your ",p_action," request is succeeded.");
                 elseif(p_action='cancel' and p_action_by='receiver') then
-					if(relationship='same') then
+					if(p.relationship='same') then
 						set t_receiver_status=1, t_donor_status=1, t_request_status=2, t_apply_count = v_apply_cnt-1;
 					else
 						set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
