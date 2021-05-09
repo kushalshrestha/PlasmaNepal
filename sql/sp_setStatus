@@ -134,12 +134,20 @@ if (v_receiver_status=2) then
 	if(v_donor_status=0) then 
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
+                    
 				end if;
-                set t_result=concat("Your ",p_action," request is succeeded.");
+                
+                if(p_action='apply' and (p_action_by='donor' or p_action_by='receiver')) then
+					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status;
+                end if;
+                set t_result=concat("Your ",p_action," request is succeeded."); # If donor has already confirmed. Another donor's status remains same. (rare case)
+                
+                
 	elseif(v_donor_status=1) then
 				if(p_action='cancel' and (p_action_by='donor' or p_action_by='receiver')) then
 					set t_receiver_status=v_receiver_status, t_donor_status=v_donor_status, t_request_status=2, t_apply_count=v_apply_cnt-1;
 				end if;
+                
                 set t_result=concat("Your ",p_action," request is succeeded.");
 	end if;
 end if;
